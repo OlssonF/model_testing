@@ -4,7 +4,7 @@
 # writes the JSON and then runs Simstrat with new parameter values
 # read in the output - assess fit using RMSE and NSE
 # assign to output table
-
+library(tidyverse)
 lake <- 'BARC'
 model <- 'Simstrat'
 dir <- here::here()
@@ -93,5 +93,67 @@ for (i in 1:nrow(params)) {
   params$RMSE[i] <- hydroGOF::rmse(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
   params$NSE[i] <- hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
 
-  message('Simstrat fit with parameters f_wind = ', params$f_wind[i], 'and p_lw = ', params$p_lw[i])
+  message('Simstrat fit with parameters f_wind = ', params$f_wind[i], ' and p_lw = ', params$p_lw[i])
 }
+
+
+RMSE_p <- params |> 
+  mutate(best_NSE = if_else(NSE == max(NSE), T, NA),
+         best_RMSE = if_else(RMSE == min(RMSE), T, NA)) |> 
+  ggplot(aes(x=f_wind, y=p_lw, fill = RMSE)) +  
+  geom_tile() +
+  geom_point(aes(colour=best_RMSE)) +
+  scale_colour_manual(breaks = c(T), values=c('red'), na.value = NA, guide="none")
+
+NSE_p <- params |> 
+  mutate(best_NSE = if_else(NSE == max(NSE), T, NA),
+         best_RMSE = if_else(RMSE == min(RMSE), T, NA),
+         NSE = ifelse(NSE <0, NA, NSE)) |> 
+  ggplot(aes(x=f_wind, y=p_lw, fill = NSE)) +  
+  geom_tile() +
+  geom_point(aes(colour=best_NSE)) +
+  scale_fill_continuous(breaks = 'reverse', na.value = NA ) +
+  scale_colour_manual(breaks = c(T), values=c('red'), na.value = NA, guide="none")
+
+
+# extract best params and run again to plot obs v pred
+# best_fwind <-  params %>% slice_min(RMSE) |> select(f_wind) |> pull()
+best_fwind <-  1.4
+# best_plw <-  params %>% slice_min(RMSE) |> select(p_lw) |> pull()
+best_plw <-  0.95
+
+
+# Read in json
+LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'f_wind', value = best_fwind)
+LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'p_lw', value = best_plw) 
+# Run simstrat with updated parameters
+SimstratR::run_simstrat()
+
+# read in the output
+temp <- read.table(file.path("output", "T_out.dat"), header = TRUE, sep = ",", 
+                   check.names = FALSE)
+temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, 
+                        origin = paste0(reference_year, "-01-01"))
+temp[, 1] <- lubridate::round_date(temp[, 1], 
+                                   unit = lubridate::seconds_to_period(timestep))
+temp <- temp[, c(1, ncol(temp):2)]
+temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+
+colnames(temp) <- c('datetime', -as.numeric(colnames(temp)[-1]))
+
+# Plotting
+temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
+  ggplot(aes(x=datetime, y=temp, colour = depth)) +
+  geom_line() 
+
+# Comparison with observations
+temp |>
+  pivot_longer(cols = -datetime,
+               names_to = 'depth',
+               values_to = 'prediction') |>
+  mutate(depth = as.numeric(depth)) |>
+  inner_join(obs, by = c('depth', 'datetime')) |>
+  ggplot(aes(x=datetime)) +
+  geom_point(aes(y=observation), alpha = 0.2) +
+  geom_line(aes(y=prediction)) +
+  facet_wrap(~depth)
