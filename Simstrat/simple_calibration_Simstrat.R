@@ -1,0 +1,97 @@
+# Script to test Simstrat model parameters
+# Starts by reading in the JSON file 
+# sets the parameter values to different combinations
+# writes the JSON and then runs Simstrat with new parameter values
+# read in the output - assess fit using RMSE and NSE
+# assign to output table
+
+lake <- 'BARC'
+model <- 'Simstrat'
+dir <- here::here()
+
+working_dir <- file.path(dir, model)
+
+setwd(working_dir)
+
+# Observations to test model fit
+cuts <- tibble::tibble(depth = seq(0, 6.25, 0.25),
+                       cuts = as.integer(factor(depth)))
+
+obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
+                show_col_types = FALSE) |> 
+  filter(site_id == lake) |> 
+  dplyr::mutate(cuts = cut(depth, breaks = cuts$depth, 
+                           include.lowest = TRUE, right = FALSE, labels = FALSE)) |>
+  dplyr::filter(lubridate::hour(datetime) == 0) |>
+  dplyr::group_by(cuts, variable, datetime, site_id) |>
+  dplyr::summarize(observation = mean(observation, na.rm = TRUE), .groups = "drop") |>
+  dplyr::left_join(cuts, by = "cuts") |>
+  dplyr::select(site_id, datetime, variable, depth, observation) |> 
+  na.omit()
+
+# Parameters to test
+f_wind <- round(seq(0.5, 1.5, length.out = 12), 2)
+p_lw <- round(seq(0.5, 1.5, length.out = 12), 2)
+
+params <- expand.grid(f_wind = f_wind, p_lw = p_lw)
+
+# for model output
+timestep <- 300
+reference_year <- 2022
+
+# table to fill
+params <- params |> 
+  mutate(RMSE = NA,
+         NSE = NA)
+
+for (i in 1:nrow(params)) {
+  # Read in json
+  LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'f_wind', value = params$f_wind[i])
+  LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'p_lw', value = params$p_lw[i]) 
+  # Run simstrat with updated parameters
+  SimstratR::run_simstrat()
+  
+  # read in the output
+  temp <- read.table(file.path("output", "T_out.dat"), header = TRUE, sep = ",", 
+                     check.names = FALSE)
+  temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, 
+                          origin = paste0(reference_year, "-01-01"))
+  temp[, 1] <- lubridate::round_date(temp[, 1], 
+                                     unit = lubridate::seconds_to_period(timestep))
+  temp <- temp[, c(1, ncol(temp):2)]
+  temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+  
+  colnames(temp) <- c('datetime', -as.numeric(colnames(temp)[-1]))
+  
+  # Plotting
+  # temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |> 
+  #   ggplot(aes(x=Datetime, y=temp, colour = depth)) +
+  #   geom_line() + 
+  #   geom_point
+  # 
+  # # Comparison with observations
+  # temp |> 
+  #   pivot_longer(cols = -datetime,
+  #                names_to = 'depth',
+  #                values_to = 'prediction') |>
+  #   mutate(depth = as.numeric(depth)) |> 
+  #   inner_join(obs, by = c('depth', 'datetime')) |> 
+  #   ggplot(aes(x=datetime)) +
+  #   geom_point(aes(y=observation), alpha = 0.2) +
+  #   geom_line(aes(y=prediction)) +
+  #   facet_wrap(~depth)
+  
+  
+  obs_pred_matrix <- temp |> 
+    pivot_longer(cols = -datetime,
+                 names_to = 'depth',
+                 values_to = 'prediction') |>
+    mutate(depth = as.numeric(depth)) |> 
+    inner_join(obs, by = c('depth', 'datetime')) 
+  
+  # calculate the metrics of goodness of fit
+  params$RMSE[i] <- hydroGOF::rmse(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
+  params$NSE[i] <- hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
+
+  message('Simstrat fit with parameters f_wind = ', params$f_wind[i], 'and p_lw = ', params$p_lw[i])
+}
