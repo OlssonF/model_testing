@@ -9,12 +9,17 @@ lake <- 'BARC'
 model <- 'Simstrat'
 dir <- here::here()
 
-working_dir <- file.path(dir, model)
+working_dir <- file.path(dir, lake, model)
 
 setwd(working_dir)
 
 # Observations to test model fit
-cuts <- tibble::tibble(depth = seq(0, 6.25, 0.25),
+max_depth <- read.table('hypsograph.dat', header = T) |> 
+  summarise(max_depth = max(-Depth..m.)) |> 
+  mutate(max_depth = round(max_depth/.25)*.25) |> 
+  pull()
+
+cuts <- tibble::tibble(depth = seq(0, max_depth, 0.25),
                        cuts = as.integer(factor(depth)))
 
 obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
@@ -96,6 +101,7 @@ for (i in 1:nrow(params)) {
   message('Simstrat fit with parameters f_wind = ', params$f_wind[i], ' and p_lw = ', params$p_lw[i])
 }
 
+write_csv(params, file = paste0(lake, '_params.csv'))
 
 RMSE_p <- params |> 
   mutate(best_NSE = if_else(NSE == max(NSE), T, NA),
