@@ -5,7 +5,7 @@
 # read in the output - assess fit using RMSE and NSE
 # assign to output table
 library(tidyverse)
-lake <- 'BARC'
+lake <- 'CRAM'
 model <- 'Simstrat'
 dir <- here::here()
 
