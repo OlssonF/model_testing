@@ -13,13 +13,15 @@ working_dir <- file.path(dir, lake, model)
 
 setwd(working_dir)
 
+# depths to model
+depth_v <- 1
 # Observations to test model fit
 max_depth <- read.table('hypsograph.dat', header = T) |> 
   summarise(max_depth = max(-Depth..m.)) |> 
-  mutate(max_depth = round(max_depth/.25)*.25) |> 
+  mutate(max_depth = round(max_depth/depth_v)*depth_v) |> 
   pull()
 
-cuts <- tibble::tibble(depth = seq(0, max_depth, 0.25),
+cuts <- tibble::tibble(depth = seq(0, max_depth, depth_v),
                        cuts = as.integer(factor(depth)))
 
 obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
@@ -75,25 +77,25 @@ for (i in 1:nrow(params)) {
   #   geom_point()
 
   # Comparison with observations
-  # temp |>
-  #   pivot_longer(cols = -datetime,
-  #                names_to = 'depth',
-  #                values_to = 'prediction') |>
-  #   mutate(depth = as.numeric(depth)) |>
-  #   inner_join(obs, by = c('depth', 'datetime')) |>
-  #   ggplot(aes(x=datetime)) +
-  #   geom_point(aes(y=observation), alpha = 0.2) +
-  #   geom_line(aes(y=prediction)) +
-  #   facet_wrap(~depth)
-  
-  
-  obs_pred_matrix <- temp |> 
+  temp |>
     pivot_longer(cols = -datetime,
                  names_to = 'depth',
                  values_to = 'prediction') |>
-    mutate(depth = as.numeric(depth)) |> 
-    inner_join(obs, by = c('depth', 'datetime')) 
-  
+    mutate(depth = as.numeric(depth)) |>
+    inner_join(obs, by = c('depth', 'datetime')) |>
+    ggplot(aes(x=datetime)) +
+    geom_point(aes(y=observation), alpha = 0.2) +
+    geom_line(aes(y=prediction)) +
+    facet_wrap(~depth)
+  # 
+  # 
+  obs_pred_matrix <- temp |>
+    pivot_longer(cols = -datetime,
+                 names_to = 'depth',
+                 values_to = 'prediction') |>
+    mutate(depth = as.numeric(depth)) |>
+    inner_join(obs, by = c('depth', 'datetime'))
+
   # calculate the metrics of goodness of fit
   params$RMSE[i] <- hydroGOF::rmse(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
   params$NSE[i] <- hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
