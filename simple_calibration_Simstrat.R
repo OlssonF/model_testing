@@ -126,13 +126,13 @@ NSE_p <- params |>
 
 
 # extract best params and run again to plot obs v pred
-# best_fwind <-  params %>% slice_min(RMSE) |> select(f_wind) |> pull()
-best_fwind <-  1.4
-# best_plw <-  params %>% slice_min(RMSE) |> select(p_lw) |> pull()
-best_plw <-  0.95
+best_fwind <-  params %>% slice_min(RMSE) |> select(f_wind) |> pull()
+# best_fwind <-  1.4
+best_plw <-  params %>% slice_min(RMSE) |> select(p_lw) |> pull()
+# best_plw <-  0.95
 
 
-# Read in json
+# Read in j.son
 LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'f_wind', value = best_fwind)
 LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'p_lw', value = best_plw) 
 # Run simstrat with updated parameters
@@ -155,14 +155,33 @@ temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') 
   ggplot(aes(x=datetime, y=temp, colour = depth)) +
   geom_line() 
 
+
 # Comparison with observations
 temp |>
   pivot_longer(cols = -datetime,
                names_to = 'depth',
                values_to = 'prediction') |>
   mutate(depth = as.numeric(depth)) |>
-  inner_join(obs, by = c('depth', 'datetime')) |>
+  right_join(obs, by = c('depth', 'datetime')) |>
+  filter(depth %in% c(0,1,2,3,4,5,6,8,10)) |> 
   ggplot(aes(x=datetime)) +
   geom_point(aes(y=observation), alpha = 0.2) +
   geom_line(aes(y=prediction)) +
-  facet_wrap(~depth)
+  facet_wrap(~depth) +
+  coord_cartesian(xlim = as_datetime(c('2022-01-01', '2022-12-31')))
+
+
+obs_pred_matrix <- temp |> 
+  pivot_longer(cols = -datetime,
+               names_to = 'depth',
+               values_to = 'prediction') |>
+  mutate(depth = as.numeric(depth)) |> 
+  inner_join(obs, by = c('depth', 'datetime')) 
+
+# calculate the metrics of goodness of fit
+hydroGOF::rmse(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
+hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
+
+obs_pred_matrix %>%
+  group_by(depth) |> 
+  summarise(rmse = hydroGOF::rmse(prediction, observation))
