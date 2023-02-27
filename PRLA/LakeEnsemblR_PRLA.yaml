@@ -1,0 +1,170 @@
+location:
+  name: Prairie Lake
+  latitude: 47.15909
+  longitude: -99.11388
+  elevation: 565
+  depth: 4.1
+  hypsograph: ../LakeEnsemblR_bathymetry_PRLA.csv
+  init_depth: 4.1
+time:
+  start: 2022-10-09 00:00:00
+  stop: 2022-10-10 00:00:00
+  time_step: 3600.0
+config_files:
+  GOTM: GOTM/gotm.yaml
+  GLM: GLM/glm3.nml
+  Simstrat: Simstrat/simstrat.par
+  FLake: FLake/flake.nml
+  MyLake: MyLake/mylake.Rdata
+observations:
+  temperature:
+    file: LakeEnsemblR_wtemp_profile_standard.csv
+  ice_height:
+    file: ~
+input:
+  init_temp_profile:
+    file: initial_profile.csv
+  meteo:
+    file: ./met_06.csv
+  light:
+    Kw: 0.87
+  ice:
+    use: true
+inflows:
+  use: false
+  file: inflow_ens01.csv
+  scale_param: 1.0
+  mass-balance: true
+output:
+  file: ensemble_output
+  format: netcdf
+  depths: 0.25
+  compression: 4
+  time_unit: hour
+  time_step: 1
+  time_method: point
+  variables:
+  - temp
+  - ice_height
+  - salt
+restart:
+  use: false
+scaling_factors:
+  all:
+    wind_speed: 1.0
+    swr: 1.0
+  Simstrat:
+    wind_speed: 1.0
+    swr: 1.0
+model_parameters:
+  FLake:
+    LAKE_PARAMS/fetch_lk: 711.699
+  GLM:
+    glm_setup/max_layer_thick: 0.5
+    glm_setup/min_layer_thick: 0.1
+    glm_setup/max_layers: 500
+    time/timezone: 0
+    time/dt: 3600
+    morphometry/bsn_len: 1053
+    morphometry/bsn_wid: 526
+    init_profiles/lake_depth: 4
+    init_profiles/snow_thickness: 0
+    init_profiles/white_ice_thickness: 0
+    init_profiles/blue_ice_thickness: 0
+    init_profiles/avg_surf_temp: 20
+    init_profiles/num_wq_vars: 0
+    init_profiles/wq_names: ''
+    init_profiles/wq_init_vals: 0
+    inflow/num_inflows: 0
+    outflow/num_outlet: 0
+    inflow/inflow_vars:
+    - '''FLOW'''
+    - '''TEMP'''
+    - '''SALT'''
+    inflow/inflow_varnum: 3
+    output/out_dir: '.'
+    output/nsave: 24
+    meteorology/sw_factor: 1
+    sediment/benthic_mode: 2
+    sediment/sed_heat_model: 1
+    sediment/n_zones: 1
+    sediment/zone_heights: 4.5
+    sediment/sed_temp_mean: 16
+    sediment/sed_heat_Ksoil: 1.2
+    sediment/sed_temp_depth: 0.5
+    sediment/sed_temp_amplitude: 0
+    sediment/sed_temp_peak_doy: 278
+    init_profiles/restart_variables:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  GOTM:
+    turbulence/turb_param/k_min: 5.0e-08
+  Simstrat:
+    ModelParameters/a_seiche: 0.0027906
+    ModelParameters/q_nn: 1.1
+    ModelParameters/p_lw: 1.0
+    ModelParameters/f_wind: 0.3527048
+    ModelParameters/freez_temp: 0.01
+    ModelParameters/k_min: 1.0e-15
+    ModelParameters/p_windf: 1.0
+    ModelParameters/c10: 1.0
+    ModelParameters/p_sw_water: 1.001
+    ModelParameters/snow_temp: 1.3979613
+    ModelParameters/wat_albedo: 0.09
+    ModelParameters/beta_sol: 0.35
+    Simulation/Save text restart: true
+    Simulation/Timestep s: 300.0
+calibration:
+  met:
+    wind_speed:
+      lower: 0.5
+      upper: 2
+      initial: 1
+      log: false
+    swr:
+      lower: 0.5
+      upper: 1.5
+      initial: 1
+      log: false
+  FLake:
+    LAKE_PARAMS/c_relax_C:
+      lower: 0.0001
+      upper: 0.01
+      initial: 0.003
+      log: false
+  GLM:
+    mixing/coef_mix_hyp:
+      lower: 0.1
+      upper: 2
+      initial: 1
+      log: false
+  GOTM:
+    turbulence/turb_param/k_min:
+      lower: 5E-6
+      upper: 5E-4
+      initial: 1E-5
+      log: true
+  Simstrat:
+    a_seiche:
+      lower: 0.0008
+      upper: 0.003
+      initial: 0.001
+      log: false
+  MyLake:
+    Phys.par/C_shelter:
+      lower: 0.14
+      upper: 0.16
+      initial: 0.15
+      log: false
