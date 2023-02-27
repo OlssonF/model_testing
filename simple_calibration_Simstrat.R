@@ -71,31 +71,31 @@ for (i in 1:nrow(params)) {
   colnames(temp) <- c('datetime', -as.numeric(colnames(temp)[-1]))
   
   # Plotting
-  # temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
-  #   ggplot(aes(x=datetime, y=temp, colour = depth)) +
-  #   geom_line() +
-  #   geom_point()
-
-  # Comparison with observations
-  temp |>
+  # temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |> 
+  #   ggplot(aes(x=Datetime, y=temp, colour = depth)) +
+  #   geom_line() + 
+  #   geom_point
+  # 
+  # # Comparison with observations
+  # temp |> 
+  #   pivot_longer(cols = -datetime,
+  #                names_to = 'depth',
+  #                values_to = 'prediction') |>
+  #   mutate(depth = as.numeric(depth)) |> 
+  #   inner_join(obs, by = c('depth', 'datetime')) |> 
+  #   ggplot(aes(x=datetime)) +
+  #   geom_point(aes(y=observation), alpha = 0.2) +
+  #   geom_line(aes(y=prediction)) +
+  #   facet_wrap(~depth)
+  
+  
+  obs_pred_matrix <- temp |> 
     pivot_longer(cols = -datetime,
                  names_to = 'depth',
                  values_to = 'prediction') |>
-    mutate(depth = as.numeric(depth)) |>
-    inner_join(obs, by = c('depth', 'datetime')) |>
-    ggplot(aes(x=datetime)) +
-    geom_point(aes(y=observation), alpha = 0.2) +
-    geom_line(aes(y=prediction)) +
-    facet_wrap(~depth)
-  # 
-  # 
-  obs_pred_matrix <- temp |>
-    pivot_longer(cols = -datetime,
-                 names_to = 'depth',
-                 values_to = 'prediction') |>
-    mutate(depth = as.numeric(depth)) |>
-    inner_join(obs, by = c('depth', 'datetime'))
-
+    mutate(depth = as.numeric(depth)) |> 
+    inner_join(obs, by = c('depth', 'datetime')) 
+  
   # calculate the metrics of goodness of fit
   params$RMSE[i] <- hydroGOF::rmse(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
   params$NSE[i] <- hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observation)
