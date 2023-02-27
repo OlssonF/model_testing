@@ -2,7 +2,7 @@ location:
   name: Toolik Lake
   latitude: 68.63069
   longitude: -149.6106
-  elevation: 715
+  elevation: 600
   depth: 26.2
   hypsograph: ../LakeEnsemblR_bathymetry_TOOL.csv
   init_depth: 26.2

@@ -58,7 +58,7 @@
   },
   "ModelParameters" : {
     "lat"           : 68.63069,
-    "p_air"         : NaN,
+    "p_air"         : 1013,
     "a_seiche"      : 0.0027906,
     "a_seiche_w"    : 0,
     "strat_sumr"    : 0,
