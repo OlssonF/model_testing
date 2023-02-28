@@ -5,7 +5,7 @@
 # read in the output - assess fit using RMSE and NSE
 # assign to output table
 library(tidyverse)
-lake <- 'CRAM'
+lake <- 'BARC'
 model <- 'Simstrat'
 dir <- here::here()
 
@@ -14,7 +14,7 @@ working_dir <- file.path(dir, lake, model)
 setwd(working_dir)
 
 # depths to model
-depth_v <- 1
+depth_v <- 0.5
 # Observations to test model fit
 max_depth <- read.table('hypsograph.dat', header = T) |> 
   summarise(max_depth = max(-Depth..m.)) |> 
@@ -26,6 +26,7 @@ cuts <- tibble::tibble(depth = seq(0, max_depth, depth_v),
 
 obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
                 show_col_types = FALSE) |> 
+  mutate(site_id = ifelse(site_id == 'TOOK', 'TOOL', site_id)) |> 
   filter(site_id == lake) |> 
   dplyr::mutate(cuts = cut(depth, breaks = cuts$depth, 
                            include.lowest = TRUE, right = FALSE, labels = FALSE)) |>
@@ -136,7 +137,7 @@ best_plw <-  params %>% slice_min(RMSE) |> select(p_lw) |> pull()
 LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'f_wind', value = best_fwind)
 LakeEnsemblR::input_json(file = 'simstrat.par', label = 'ModelParameters', key = 'p_lw', value = best_plw) 
 # Run simstrat with updated parameters
-SimstratR::run_simstrat()
+SimstratR::run_simstrat(verbose = F)
 
 # read in the output
 temp <- read.table(file.path("output", "T_out.dat"), header = TRUE, sep = ",", 
@@ -151,9 +152,9 @@ temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
 colnames(temp) <- c('datetime', -as.numeric(colnames(temp)[-1]))
 
 # Plotting
-temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
-  ggplot(aes(x=datetime, y=temp, colour = depth)) +
-  geom_line() 
+# temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
+#   ggplot(aes(x=datetime, y=temp, colour = depth)) +
+#   geom_line() 
 
 
 # Comparison with observations
@@ -162,13 +163,12 @@ temp |>
                names_to = 'depth',
                values_to = 'prediction') |>
   mutate(depth = as.numeric(depth)) |>
-  right_join(obs, by = c('depth', 'datetime')) |>
-  filter(depth %in% c(0,1,2,3,4,5,6,8,10)) |> 
+  inner_join(obs, by = c('depth', 'datetime')) |>
   ggplot(aes(x=datetime)) +
   geom_point(aes(y=observation), alpha = 0.2) +
   geom_line(aes(y=prediction)) +
   facet_wrap(~depth) +
-  coord_cartesian(xlim = as_datetime(c('2022-01-01', '2022-12-31')))
+  coord_cartesian(xlim = lubridate::as_datetime(c('2022-01-01', '2022-12-31')))
 
 
 obs_pred_matrix <- temp |> 
