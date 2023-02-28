@@ -7,8 +7,8 @@ location:
   hypsograph: ../LakeEnsemblR_bathymetry_LIRO.csv
   init_depth: 10.1
 time:
-  start: 2022-10-08 00:00:00
-  stop: 2022-10-09 00:00:00
+  start: 2022-01-01 00:00:00
+  stop: 2022-12-31 00:00:00
   time_step: 3600.0
 config_files:
   GOTM: GOTM/gotm.yaml
@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_01.csv
   light:
-    Kw: 0.87
+    Kw: 0.45
   ice:
     use: true
 inflows:

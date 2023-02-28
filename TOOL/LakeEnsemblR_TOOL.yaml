@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_26.csv
   light:
-    Kw: 0.87
+    Kw: 0.42
   ice:
     use: true
 inflows:
