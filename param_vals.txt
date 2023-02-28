@@ -1,0 +1,39 @@
+BARC
+	f_wind:1.4
+	p_lw: 0.95
+	p_sw_water: 1
+	kd: 0.4
+CRAM
+	f_wind: 0.3
+	p_lw: 0.9
+	p_sw_water: 0.8
+	kd: 0.8
+	p_windf: 0.5
+	a_seiche: 0.001
+LIRO
+	f_wind: 0.3
+	p_lw: 0.8
+	p_sw_water: 0.8
+	kd: 0.8
+	p_windf: 0.3
+	a_seiche: 0.001
+PRLA
+	f_wind: 1.5
+	p_lw: 0.95
+	p_sw_water: 1
+	kd: 0.45
+PRPO
+	f_wind: 1.4
+	p_lw: 0.95
+	p_sw_water: 1
+	kd: 3.5
+SUGG
+	f_wind: 1.4
+	p_lw: 0.86
+	p_sw_water: 1
+	kd: 3.0
+TOOK
+	f_wind: 1.3
+	p_lw: 0.95
+	p_sw_water: 1
+	kd: 0.42
