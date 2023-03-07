@@ -5,7 +5,7 @@
 # read in the output - assess fit using RMSE and NSE
 # assign to output table
 library(tidyverse)
-lake <- 'TOOL'
+lake <- 'CRAM'
 model <- 'GOTM'
 dir <- here::here()
 
@@ -14,7 +14,7 @@ working_dir <- file.path(dir, lake, model)
 setwd(working_dir)
 
 # depths to model
-depth_n <- 26
+depth_n <- 19
 # Observations to test model fit
 max_depth <- read.table('hypsograph.dat', skip = 1, col.names = c('depth', 'area')) |> 
   summarise(max_depth = max(-depth)) |> 
@@ -99,7 +99,7 @@ for (i in 1:nrow(params)) {
     pivot_longer(cols = -datetime,
                  names_to = 'depth',
                  values_to = 'prediction') |>
-    mutate(depth = round(as.numeric(depth)),2) |> 
+    mutate(depth = round(as.numeric(depth),2)) |> 
     inner_join(obs, by = c('depth', 'datetime')) 
   
   # calculate the metrics of goodness of fit
@@ -195,7 +195,7 @@ obs_pred_matrix <- gotm_output |>
   pivot_longer(cols = -datetime,
                names_to = 'depth',
                values_to = 'prediction') |>
-  mutate(depth = as.numeric(depth)) |> 
+  mutate(depth = round(as.numeric(depth),2)) |> 
   inner_join(obs, by = c('depth', 'datetime')) 
 
 # calculate the metrics of goodness of fit
@@ -206,16 +206,18 @@ hydroGOF::NSE(sim = obs_pred_matrix$prediction, obs = obs_pred_matrix$observatio
 gotm_output |>
   pivot_longer(cols = -datetime,
                names_to = 'depth',
-               values_to = 'prediction') |>
-  mutate(depth = as.numeric(depth)) |>
+               values_to = 'prediction')|>
+  mutate(depth = round(as.numeric(depth),2)) |> 
   inner_join(obs, by = c('depth', 'datetime')) |>
   ggplot(aes(x=datetime)) +
   geom_point(aes(y=observation), alpha = 0.2) +
   geom_line(aes(y=prediction)) +
   facet_wrap(~depth) +
-  coord_cartesian(xlim = lubridate::as_datetime(c('2022-01-01', '2022-12-31')))
+  coord_cartesian(xlim = lubridate::as_datetime(c('2022-01-01', '2022-12-31'))) +
+  labs(title = paste('best_wsf=', best_wsf, 'best_shf=', best_shf,'best_swr=', best_swr))
 
 
 obs_pred_matrix %>%
   group_by(depth) |> 
   summarise(rmse = hydroGOF::rmse(prediction, observation))
+
