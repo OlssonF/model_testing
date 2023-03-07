@@ -4,7 +4,7 @@ location:
   longitude: -149.6106
   elevation: 600
   depth: 26.2
-  hypsograph: ../LakeEnsemblR_bathymetry_TOOL.csv
+  hypsograph: ./LakeEnsemblR_bathymetry_TOOL.csv
   init_depth: 26.2
 time:
   start: 2022-09-11 00:00:00
