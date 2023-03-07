@@ -1,0 +1,42 @@
+BARC
+	g2: 2.5
+	kmin: 1.4e-07
+	swr: 1 
+	shf: 1
+	wsf: 1
+CRAM
+	g2: 1.25
+	kmin: 1.4e-07
+	swr: 1
+	shf: 1
+	wsf: 0.75
+LIRO
+	g2: 
+	kmin: 1.4e-07
+	swr: 1
+	shf: 1.25	
+	wsf: 0.5	
+PRLA
+	g2: 2.0
+	kmin: 3.6e-06
+	swr: 1
+	shf: 1
+	wsf: 1
+PRPO
+	g2: 0.3
+	kmin: 1.4e-07 
+	swr: 0.75
+	shf: 0.75
+	wsf: 1.25
+SUGG
+	g2: 0.33
+	kmin: 3.6e-06
+	swr: 0.5
+	shf: 1.0
+	wsf: 0.75
+TOOK
+	g2: 0.38
+	kmin: 2.6e-06
+	swr: 1.25
+	shf: 1.25
+	wsf: 1.25
