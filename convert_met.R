@@ -1,6 +1,9 @@
-lake <- 'PRPO'
+lake <- 'CRAM'
+model <- 'GOTM'
 
 setwd(file.path(here::here(), lake))
 
-LakeEnsemblR::export_meteo(config_file = paste0('LakeEnsemblR_', lake,'.yaml'), model = 'Simstrat')
-LakeEnsemblR::export_extinction(config_file = paste0('LakeEnsemblR_', lake,'.yaml'), model = 'Simstrat')
+LakeEnsemblR::export_meteo(config_file = paste0('LakeEnsemblR_', lake,'.yaml'), model = model)
+LakeEnsemblR::export_extinction(config_file = paste0('LakeEnsemblR_', lake,'.yaml'), model = model)
+
+LakeEnsemblR::export_config(config_file = paste0('LakeEnsemblR_', lake,'.yaml'), model = model)
