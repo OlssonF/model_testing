@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_18.csv
   light:
-    Kw: 0.35
+    Kw: 0.4
   ice:
     use: true
 inflows:
@@ -115,7 +115,7 @@ model_parameters:
     ModelParameters/a_seiche: 0.0027906
     ModelParameters/q_nn: 1.1
     ModelParameters/p_lw: 0.95
-    ModelParameters/f_wind: 1.41
+    ModelParameters/f_wind: 1.4
     ModelParameters/freez_temp: 0.01
     ModelParameters/k_min: 1.0e-15
     ModelParameters/p_windf: 1.0

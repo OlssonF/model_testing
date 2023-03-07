@@ -4,7 +4,7 @@ location:
   longitude: -89.704767
   elevation: 502
   depth: 10.1
-  hypsograph: ../LakeEnsemblR_bathymetry_LIRO.csv
+  hypsograph: ./LakeEnsemblR_bathymetry_LIRO.csv
   init_depth: 10.1
 time:
   start: 2022-01-01 00:00:00
@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_01.csv
   light:
-    Kw: 0.45
+    Kw: 0.8
   ice:
     use: true
 inflows:

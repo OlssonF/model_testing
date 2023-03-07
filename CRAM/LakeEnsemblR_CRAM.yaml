@@ -4,7 +4,7 @@ location:
   longitude: -89.473688
   elevation: 509
   depth: 19.1
-  hypsograph: ../LakeEnsemblR_bathymetry_CRAM.csv
+  hypsograph: ./LakeEnsemblR_bathymetry_CRAM.csv
   init_depth: 19.1
 time:
   start: 2022-06-28 00:00:00
@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_19.csv
   light:
-    Kw: 0.5
+    Kw: 0.8
   ice:
     use: true
 inflows:

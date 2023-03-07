@@ -4,7 +4,7 @@ location:
   longitude: -99.11388
   elevation: 565
   depth: 4.1
-  hypsograph: ../LakeEnsemblR_bathymetry_PRLA.csv
+  hypsograph: ./LakeEnsemblR_bathymetry_PRLA.csv
   init_depth: 4.1
 time:
   start: 2022-10-09 00:00:00
@@ -27,7 +27,7 @@ input:
   meteo:
     file: ./met_06.csv
   light:
-    Kw: 0.87
+    Kw: 0.45
   ice:
     use: true
 inflows:
