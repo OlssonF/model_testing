@@ -5,7 +5,7 @@
 # read in the output - assess fit using RMSE and NSE
 # assign to output table
 library(tidyverse)
-lake <- 'BARC'
+lake <- 'fcre'
 model <- 'Simstrat'
 dir <- here::here()
 
@@ -24,18 +24,33 @@ max_depth <- read.table('hypsograph.dat', header = T) |>
 cuts <- tibble::tibble(depth = seq(0, max_depth, depth_v),
                        cuts = as.integer(factor(depth)))
 
-obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
-                show_col_types = FALSE) |> 
-  mutate(site_id = ifelse(site_id == 'TOOK', 'TOOL', site_id)) |> 
-  filter(site_id == lake) |> 
-  dplyr::mutate(cuts = cut(depth, breaks = cuts$depth, 
-                           include.lowest = TRUE, right = FALSE, labels = FALSE)) |>
-  dplyr::filter(lubridate::hour(datetime) == 0) |>
-  dplyr::group_by(cuts, variable, datetime, site_id) |>
-  dplyr::summarize(observation = mean(observation, na.rm = TRUE), .groups = "drop") |>
-  dplyr::left_join(cuts, by = "cuts") |>
-  dplyr::select(site_id, datetime, variable, depth, observation) |> 
-  na.omit()
+if (lake == 'fcre') {
+  obs <- readr::read_csv("../fcre-targets-insitu.csv",
+                         show_col_types = FALSE) |> 
+    filter(site_id == lake, 
+           variable == 'temperature') |> 
+    dplyr::mutate(cuts = cut(depth, breaks = cuts$depth, 
+                             include.lowest = TRUE, right = FALSE, labels = FALSE)) |>
+    dplyr::group_by(cuts, variable, datetime, site_id) |>
+    dplyr::summarise(observation = mean(observation, na.rm = TRUE), .groups = "drop") |>
+    dplyr::left_join(cuts, by = "cuts") |>
+    dplyr::select(site_id, datetime, variable, depth, observation) |> 
+    na.omit()
+} else {
+  obs <- readr::read_csv("https://data.ecoforecast.org/neon4cast-targets/aquatics/aquatics-expanded-observations.csv.gz",
+                         show_col_types = FALSE) |> 
+    mutate(site_id = ifelse(site_id == 'TOOK', 'TOOL', site_id)) |> 
+    filter(site_id == lake) |> 
+    dplyr::mutate(cuts = cut(depth, breaks = cuts$depth, 
+                             include.lowest = TRUE, right = FALSE, labels = FALSE)) |>
+    dplyr::filter(lubridate::hour(datetime) == 0) |>
+    dplyr::group_by(cuts, variable, datetime, site_id) |>
+    dplyr::summarise(observation = mean(observation, na.rm = TRUE), .groups = "drop") |>
+    dplyr::left_join(cuts, by = "cuts") |>
+    dplyr::select(site_id, datetime, variable, depth, observation) |> 
+    na.omit()
+}
+
 
 # Parameters to test
 f_wind <- round(seq(0.5, 1.5, length.out = 12), 2)
@@ -127,9 +142,9 @@ NSE_p <- params |>
 
 
 # extract best params and run again to plot obs v pred
-best_fwind <-  params %>% slice_min(RMSE) |> select(f_wind) |> pull()
+best_fwind <-  params %>% slice_max(NSE) |> select(f_wind) |> pull()
 # best_fwind <-  1.4
-best_plw <-  params %>% slice_min(RMSE) |> select(p_lw) |> pull()
+best_plw <-  params %>% slice_max(NSE) |> select(p_lw) |> pull()
 # best_plw <-  0.95
 
 
@@ -152,9 +167,9 @@ temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
 colnames(temp) <- c('datetime', -as.numeric(colnames(temp)[-1]))
 
 # Plotting
-# temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
-#   ggplot(aes(x=datetime, y=temp, colour = depth)) +
-#   geom_line() 
+temp |>  pivot_longer(cols = -datetime, names_to = 'depth', values_to = 'temp') |>
+  ggplot(aes(x=datetime, y=temp, colour = depth)) +
+  geom_line()
 
 
 # Comparison with observations
