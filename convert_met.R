@@ -1,5 +1,5 @@
-lake <- 'CRAM'
-model <- 'GOTM'
+lake <- 'fcre'
+model <- 'Simstrat'
 
 setwd(file.path(here::here(), lake))
 
